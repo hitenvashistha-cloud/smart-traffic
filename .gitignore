@@ -11,3 +11,4 @@ traffic.db-wal
 .DS_Store
 *.log
 yolov8n.pt
+frames/

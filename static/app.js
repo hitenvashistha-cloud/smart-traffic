@@ -1,4 +1,4 @@
-// ---------- Phase 1: health badge ----------
+// ---------- Health badge ----------
 const badge = document.getElementById("status-badge");
 
 async function checkHealth() {
@@ -34,7 +34,7 @@ const LANES = ["north", "south", "east", "west"];
 
 const laneState = { north: { filename: null }, south: { filename: null }, east: { filename: null }, west: { filename: null } };
 
-// ---------- Per-lane cards ----------
+// ---------- Per-lane upload + detect ----------
 document.querySelectorAll(".lane-card").forEach((card) => {
   const lane         = card.dataset.lane;
   const fileInput    = card.querySelector(".file-input");
@@ -161,14 +161,13 @@ timingBtn.addEventListener("click", async () => {
   }
 });
 
-// ---------- Live ----------
+// ---------- Live controls ----------
 const liveStart   = document.getElementById("live-start");
 const liveStop    = document.getElementById("live-stop");
 const liveStatus  = document.getElementById("live-status");
 const liveResult  = document.getElementById("live-result");
 const liveUpdated = document.getElementById("live-updated");
 const liveGrid    = document.getElementById("live-grid");
-let liveTimer = null;
 
 liveStart.addEventListener("click", async () => {
   const urls = {};
@@ -194,8 +193,6 @@ liveStart.addEventListener("click", async () => {
     liveStatus.textContent = "Live running";
     liveStatus.className = "status ok";
     liveResult.classList.remove("hidden");
-    pollLive();
-    liveTimer = setInterval(pollLive, 3000);
   } catch (err) {
     liveStart.disabled = false;
     liveStatus.textContent = "Start failed: " + err.message;
@@ -204,7 +201,6 @@ liveStart.addEventListener("click", async () => {
 });
 
 liveStop.addEventListener("click", async () => {
-  if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
   try { await fetch("/api/live/stop", { method: "POST" }); } catch (_) {}
   liveStop.disabled = true;
   liveStart.disabled = false;
@@ -212,29 +208,68 @@ liveStop.addEventListener("click", async () => {
   liveStatus.className = "status";
 });
 
+// ---------- Live frame preview + lane cards (always poll every 2s) ----------
+// ---------- Live frame preview + lane cards ----------
 async function pollLive() {
   try {
     const res = await fetch("/api/live");
     const data = await res.json();
     if (!data.ok) return;
-    liveUpdated.textContent = data.updated ? `Last update: ${data.updated}` : "Waiting for first cycle…";
-    liveGrid.innerHTML = "";
+
+    // Update the 4 live images
+    let anyLive = false;
     for (const lane of LANES) {
       const L = data.lanes[lane];
-      const T = data.timings && data.timings.timings ? data.timings.timings[lane] : null;
-      const div = document.createElement("div");
-      div.className = "timing-item";
-      div.innerHTML =
-        `<div class="timing-lane">${lane}</div>` +
-        `<span class="timing-green">${T ? T.green + "s" : "—"}</span>` +
-        `<div class="timing-sub">vehicles: ${L.count}</div>` +
-        (L.error ? `<div class="timing-sub" style="color:#fca5a5">${L.error}</div>` : "");
-      liveGrid.appendChild(div);
+      const img = document.getElementById(`img-${lane}`);
+      const err = document.getElementById(`err-${lane}`);
+      const ts = document.getElementById(`ts-${lane}`);
+
+      if (L.frame_ts) {
+        anyLive = true;
+        img.src = `/frames/${lane}_latest.jpg?t=${Date.now()}`;
+        img.classList.remove("hidden");
+        err.classList.add("hidden");
+        ts.textContent = L.frame_ts;
+      } else {
+        img.classList.add("hidden");
+        err.classList.remove("hidden");
+        err.textContent = L.error || "No frame yet";
+        ts.textContent = "";
+      }
+    }
+
+    if (anyLive) {
+      frameBadge.textContent = "live";
+      frameBadge.className = "phase-pill phase-green";
+    } else {
+      frameBadge.textContent = data.running ? "waiting" : "offline";
+      frameBadge.className = "phase-pill phase-idle";
+    }
+
+    // Update lane text cards
+    if (data.running) {
+      liveUpdated.textContent = data.updated ? `Last update: ${data.updated}` : "Waiting for first cycle…";
+      liveGrid.innerHTML = "";
+      for (const lane of LANES) {
+        const L = data.lanes[lane];
+        const T = data.timings && data.timings.timings ? data.timings.timings[lane] : null;
+        const div = document.createElement("div");
+        div.className = "timing-item";
+        div.innerHTML =
+          `<div class="timing-lane">${lane}</div>` +
+          `<span class="timing-green">${T ? T.green + "s" : "—"}</span>` +
+          `<div class="timing-sub">vehicles: ${L.count}</div>` +
+          (L.error ? `<div class="timing-sub" style="color:#fca5a5">${L.error}</div>` : "");
+        liveGrid.appendChild(div);
+      }
     }
   } catch (_) {}
 }
 
-// ---------- History + KPI ----------
+pollLive();
+setInterval(pollLive, 2000);
+
+// ---------- History ----------
 const historyStats = document.getElementById("history-stats");
 const historyBody  = document.querySelector("#history-table tbody");
 
@@ -291,7 +326,7 @@ async function loadHistory() {
 loadHistory();
 setInterval(loadHistory, 5000);
 
-// ---------- Phase 7: signal state panel ----------
+// ---------- Signal state panel ----------
 const signalPhase = document.getElementById("signal-phase");
 
 function renderDots(state) {

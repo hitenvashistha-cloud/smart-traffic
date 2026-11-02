@@ -23,6 +23,8 @@ get_controller().start()
 
 UPLOAD_DIR = os.path.join(app.root_path, "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+FRAMES_DIR = os.path.join(app.root_path, "frames")
+os.makedirs(FRAMES_DIR, exist_ok=True)
 
 ALLOWED_EXT = {"png", "jpg", "jpeg", "webp"}
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
@@ -71,6 +73,11 @@ def upload():
 @app.route("/uploads/<path:filename>")
 def serve_upload(filename):
     return send_from_directory(UPLOAD_DIR, filename)
+
+
+@app.route("/frames/<path:filename>")
+def serve_frame(filename):
+    return send_from_directory(FRAMES_DIR, filename)
 
 
 @app.route("/api/detect/<filename>", methods=["POST"])

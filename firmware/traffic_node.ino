@@ -3,12 +3,12 @@
 #include <ArduinoJson.h>
 
 // ---- EDIT THESE ----
-const char* WIFI_SSID = "YOUR_WIFI_SSID";
-const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";
-const char* SERVER    = "http://192.168.1.65:5000/api/esp32/signals";  // ← your laptop LAN IP
+const char* WIFI_SSID = "YOUR_WIFI_SSID";                             // ← EDIT
+const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";                         // ← EDIT
+const char* SERVER = "http://172.26.16.215:5000/api/esp32/signals"; // ← EDIT (your laptop LAN IP)
 // --------------------
 
-// Pin mapping (change to match your wiring)
+// Pin mapping
 #define N_G 25
 #define N_Y 26
 #define N_R 27
@@ -63,7 +63,7 @@ void loop() {
 
   HTTPClient http;
   http.begin(SERVER);
-  http.setTimeout(2000);
+  http.setTimeout(60000);
   int code = http.GET();
 
   if (code == 200) {

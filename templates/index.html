@@ -25,6 +25,35 @@
 
     <div id="history-stats" class="kpi-strip"></div>
 
+    <section class="card live-preview-card">
+      <div class="card-head">
+        <h2>📸 Live Camera Feeds</h2>
+        <span id="frame-badge" class="phase-pill phase-idle">no frame</span>
+      </div>
+      <div class="live-preview-grid">
+        <div class="preview-box">
+          <div class="preview-header">North <span id="ts-north" class="preview-ts"></span></div>
+          <img id="img-north" class="hidden" alt="north view" />
+          <div id="err-north" class="preview-err">Waiting…</div>
+        </div>
+        <div class="preview-box">
+          <div class="preview-header">South <span id="ts-south" class="preview-ts"></span></div>
+          <img id="img-south" class="hidden" alt="south view" />
+          <div id="err-south" class="preview-err">Waiting…</div>
+        </div>
+        <div class="preview-box">
+          <div class="preview-header">East <span id="ts-east" class="preview-ts"></span></div>
+          <img id="img-east" class="hidden" alt="east view" />
+          <div id="err-east" class="preview-err">Waiting…</div>
+        </div>
+        <div class="preview-box">
+          <div class="preview-header">West <span id="ts-west" class="preview-ts"></span></div>
+          <img id="img-west" class="hidden" alt="west view" />
+          <div id="err-west" class="preview-err">Waiting…</div>
+        </div>
+      </div>
+    </section>
+
     <div class="main-grid">
 
       <section class="card signal-hero">
@@ -186,7 +215,7 @@
     <section class="card">
       <div class="card-head">
         <h2>Live Camera Feeds</h2>
-        <p class="subtitle">IP Webcam example: <code>http://192.168.1.5:8080/shot.jpg</code></p>
+        <p class="subtitle">IP Webcam example: <code>http://192.168.4.50:8080/shot.jpg</code></p>
       </div>
       <div class="live-urls">
         <label>North URL <input type="text" id="url-north" placeholder="http://…/shot.jpg" /></label>
